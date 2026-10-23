@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Storm Lab</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>🌪️ Storm Lab</h1>
+    <p class="tagline">Can you build a tornado?</p>
+    <p class="intro">
+      Tornadoes need the right mix of ingredients. Slide them up and down to
+      see what the atmosphere has to work with.
+    </p>
+  </header>
+
+  <main>
+    <section class="panel weather" aria-labelledby="weather-title">
+      <h2 id="weather-title">📡 Start from real Oklahoma weather</h2>
+      <div class="weather-row">
+        <label for="city">City</label>
+        <select id="city"></select>
+        <button type="button" id="load-weather" class="small-btn">Load real weather</button>
+      </div>
+      <p id="weather-status" class="weather-status" aria-live="polite"></p>
+
+      <div id="weather-loaded" hidden>
+        <div class="weather-row">
+          <label for="hour">Time</label>
+          <select id="hour"></select>
+        </div>
+        <p class="hint">⭐ = the stormiest hour in the next 3 days (most fuel × wind shear).</p>
+        <p id="weather-summary" class="weather-summary"></p>
+        <ul id="weather-facts" class="weather-facts"></ul>
+        <button type="button" id="reset-real" class="small-btn">↺ Back to the real values</button>
+      </div>
+    </section>
+
+    <section class="panel challenges" aria-labelledby="challenge-title">
+      <h2 id="challenge-title">🎯 Challenges</h2>
+      <p class="hint">Pick a goal, set the sliders yourself, then grow the storm.
+        <span id="challenge-count"></span></p>
+      <div id="challenge-list" class="presets challenge-list"></div>
+      <div id="challenge-goal" class="challenge-goal" hidden>
+        <h3></h3>
+        <p class="goal-text"></p>
+        <p class="goal-hint"></p>
+        <p class="goal-best"></p>
+        <button type="button" id="challenge-quit" class="small-btn">✕ Stop this challenge</button>
+      </div>
+    </section>
+
+    <section class="panel" aria-labelledby="ingredients-title">
+      <h2 id="ingredients-title">The ingredients</h2>
+
+      <!-- Sliders are built by app.js from the INGREDIENTS list,
+           so their science lives in one place. -->
+      <div id="sliders"></div>
+    </section>
+
+    <section class="controls">
+      <div class="presets">
+        <span class="presets-label">Try a preset:</span>
+        <button type="button" class="preset" data-preset="calm">☀️ Calm day</button>
+        <button type="button" class="preset" data-preset="popup">⛈️ Summer pop-up storm</button>
+        <button type="button" class="preset" data-preset="classic">🌪️ Classic tornado day</button>
+      </div>
+      <div class="presets">
+        <span class="presets-label">📜 Famous Oklahoma days:</span>
+        <button type="button" class="preset famous" data-famous="moore1999">May 3, 1999 — Bridge Creek–Moore</button>
+        <button type="button" class="preset famous" data-famous="moore2013">May 20, 2013 — Moore</button>
+        <button type="button" class="preset famous" data-famous="elreno2013">May 31, 2013 — El Reno</button>
+      </div>
+      <div id="story" class="story" hidden aria-live="polite">
+        <h3 class="story-title"></h3>
+        <p class="story-text"></p>
+        <p class="note">⚠️ Slider values are <strong>approximate</strong>, rounded from
+          that day's weather balloon and model data to fit this toy. Your storm may come
+          out differently each time. Even on these days, most storms didn't make tornadoes.</p>
+      </div>
+      <button type="button" id="grow" class="grow">🌩️ Grow the storm!</button>
+    </section>
+
+    <section id="scene" class="panel scene">
+      <canvas id="storm-canvas" role="img"
+              aria-label="Animated side view of the storm. The caption below describes each stage."></canvas>
+      <div id="stage-dots" class="stage-dots"></div>
+      <p id="storm-caption" class="caption" aria-live="polite"></p>
+      <div class="scene-buttons">
+        <button type="button" id="replay" class="small-btn" disabled>↺ Replay</button>
+        <button type="button" id="skip" class="small-btn" disabled>⏭ Skip to end</button>
+      </div>
+    </section>
+
+    <section id="result" class="panel result" hidden aria-live="polite">
+      <p class="stale-note">You changed the ingredients — grow the storm again to see what happens.</p>
+      <h2 class="result-title"></h2>
+      <p class="result-ef"></p>
+      <p class="result-challenge"></p>
+      <h3>Why?</h3>
+      <ul class="result-helped"></ul>
+      <p class="result-limit"></p>
+      <p class="result-chance"></p>
+      <p class="result-real"><strong>🌎 Real world:</strong> <span></span></p>
+    </section>
+
+    <section class="panel learn" aria-labelledby="learn-title">
+      <h2 id="learn-title">📚 Learn more</h2>
+
+      <details>
+        <summary>How tornadoes form (6 steps)</summary>
+        <p class="note">These match the six numbered stages in the animation above.</p>
+        <ol class="steps">
+          <li><strong>☀️ Heating.</strong> The sun warms the ground, which warms the
+            moist air touching it. Warm air is lighter than the cooler air above, so it
+            starts to rise — like a hot-air balloon.</li>
+          <li><strong>☁️ Clouds grow.</strong> As the air rises it cools, and its
+            water vapor condenses into cloud. Condensing releases heat, which keeps the
+            air warmer than its surroundings, so it rises even faster. That extra push is
+            what CAPE (“fuel”) measures.</li>
+          <li><strong>🌀 A spinning roll.</strong> When the wind blows faster (or from a
+            different direction) higher up than near the ground, the air in between gets
+            rolled into an invisible horizontal tube, like a pencil rolled between your
+            palms. That's wind shear.</li>
+          <li><strong>⬆️ The roll stands up.</strong> A strong updraft lifts the middle
+            of that tube and tips it upright. Now the updraft itself is spinning — a
+            <em>mesocyclone</em> — and the storm is a <em>supercell</em>. Its top spreads
+            out into a flat anvil.</li>
+          <li><strong>⬇️ Wall cloud and downdraft.</strong> Under the rotation, a lower,
+            often spinning “wall cloud” forms. Behind it, rain-cooled air sinks and wraps
+            around the rotation (the <em>rear-flank downdraft</em>).</li>
+          <li><strong>🌪️ Touchdown.</strong> The downdraft and the strong low-level spin
+            tighten the rotation near the ground, like a figure skater pulling in their
+            arms. If it becomes intense and connects cloud to ground, it's a tornado.
+            <br><span class="note">Simplified: scientists still don't fully know why
+            some supercells make tornadoes and most don't.</span></li>
+        </ol>
+      </details>
+
+      <details>
+        <summary>Glossary</summary>
+        <dl class="glossary">
+          <dt>CAPE</dt>
+          <dd>Convective Available Potential Energy, in J/kg — how much “fuel” a rising
+            bubble of air has. More CAPE = stronger updrafts.</dd>
+          <dt>Dew point</dt>
+          <dd>The temperature air would have to cool to before its moisture condenses.
+            A higher dew point means more water vapor in the air — Oklahoma spring days
+            in the upper 60s °F feel sticky.</dd>
+          <dt>Wind shear</dt>
+          <dd>A change in wind speed or direction with height. It's what makes storms
+            rotate, and it tilts the storm so rain doesn't fall back into the updraft.</dd>
+          <dt>Supercell</dt>
+          <dd>A thunderstorm with a long-lasting rotating updraft. Supercells make most
+            strong tornadoes — but most supercells never make one.</dd>
+          <dt>Mesocyclone</dt>
+          <dd>The rotating updraft inside a supercell, usually 2–10 km (1–6 miles)
+            wide. Much bigger and slower-spinning than a tornado.</dd>
+          <dt>Wall cloud</dt>
+          <dd>A lowered, often rotating section of cloud under a supercell's updraft.
+            Tornadoes usually come from here.</dd>
+          <dt>Rear-flank downdraft (RFD)</dt>
+          <dd>A surge of sinking air on the back side of a supercell that wraps around
+            the mesocyclone. It often helps a tornado form.</dd>
+          <dt>EF scale</dt>
+          <dd>The Enhanced Fujita scale, EF0 to EF5. It rates a tornado <em>after</em>
+            it happens, by estimating wind speed from the damage it left.</dd>
+          <dt>Tornado Alley</dt>
+          <dd>The central U.S. plains, including Oklahoma. Warm, moist air from the Gulf
+            of Mexico meets dry air from the west and fast winds aloft there, so the
+            tornado ingredients come together more often than almost anywhere else on Earth.</dd>
+        </dl>
+      </details>
+
+      <details>
+        <summary>EF scale — how strong is a tornado?</summary>
+        <div class="table-wrap">
+          <table class="ef-table">
+            <thead>
+              <tr><th>Rating</th><th>Est. wind (3-sec gust)</th><th>Typical damage</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><span class="ef ef0">EF0</span></td><td>65–85 mph</td><td>Shingles and gutters torn off, tree branches broken.</td></tr>
+              <tr><td><span class="ef ef1">EF1</span></td><td>86–110 mph</td><td>Roofs badly stripped, mobile homes overturned, windows broken.</td></tr>
+              <tr><td><span class="ef ef2">EF2</span></td><td>111–135 mph</td><td>Roofs torn off well-built houses, large trees snapped or uprooted.</td></tr>
+              <tr><td><span class="ef ef3">EF3</span></td><td>136–165 mph</td><td>Whole stories of houses destroyed, trains overturned, cars lifted.</td></tr>
+              <tr><td><span class="ef ef4">EF4</span></td><td>166–200 mph</td><td>Well-built houses leveled, cars thrown.</td></tr>
+              <tr><td><span class="ef ef5">EF5</span></td><td>Over 200 mph</td><td>Strong houses swept off foundations; steel-reinforced concrete badly damaged.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="note">About 3 in 4 U.S. tornadoes are EF0–EF1. EF4–EF5 are rare
+          (around 1 in 100), but they cause most tornado deaths. Moore, Oklahoma has been
+          hit by top-rated tornadoes twice: an F5 in 1999 (rated on the older Fujita
+          scale) and an EF5 in 2013.</p>
+      </details>
+    </section>
+  </main>
+
+  <footer>
+    Educational toy — not a forecast. For real warnings use the
+    <a href="https://www.weather.gov/" target="_blank" rel="noopener">National Weather Service</a>.
+  </footer>
+
+  <script src="storm-canvas.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
